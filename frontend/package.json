@@ -24,8 +24,6 @@
     "mdbreact": "^5.2.0",
     "qs": "^6.15.0",
     "react": "^19.2.4",
-    "react-alert": "^7.0.3",
-    "react-alert-template-basic": "^1.0.2",
     "react-bootstrap": "^2.8.0",
     "react-data-table-component": "^7.7.0",
     "react-dom": "^19.2.4",

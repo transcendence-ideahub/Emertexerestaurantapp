@@ -6,7 +6,7 @@ import { logout } from "../../redux/actions/userActions";
 import { toast } from "react-toastify"; // 
 
 import Search from "./Search";
-import "../../App.css";
+import "../../Components/App.css";
 
 const Header = () => {
   const dispatch = useDispatch();

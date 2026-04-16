@@ -7,9 +7,9 @@ import {
   addItemToCart,
   updateCartQuantity,
   removeItemFromCart,
-} from "../redux/actions/cartActions";
+} from "../src/redux/actions/cartActions";
 import axios from "axios";
-import { getMenus } from "../redux/actions/menuActions";
+import { getMenus } from "../src/redux/actions/menuActions";
 
 const Fooditem = ({ fooditem, restaurant }) => {
   const [quantity, setQuantity] = useState(1);

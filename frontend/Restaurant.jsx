@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteRestaurant } from "../redux/actions/restaurantAction";
+import { deleteRestaurant } from "../src/redux/actions/restaurantAction";
 
 const Restaurant = ({ restaurant }) => {
   const dispatch = useDispatch();

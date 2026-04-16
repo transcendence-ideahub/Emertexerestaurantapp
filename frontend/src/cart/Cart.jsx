@@ -2,13 +2,11 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchCartItems,
   removeItemFromCart,
   updateCartQuantity,
-} from "../../redux/actions/cartActions";
+} from "../redux/actions/cartActions";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faIndianRupee } from "@fortawesome/free-solid-svg-icons";
-// import { payment } from "../../actions/orderActions";
 import { toast } from "react-toastify"; 
 
 const Cart = () => {
@@ -17,18 +15,15 @@ const Cart = () => {
 
   const { cartItems, restaurant } = useSelector((state) => state.cart);
 
-  useEffect(() => {
-    dispatch(fetchCartItems());
-  }, [dispatch]);
-
   const removeCartItemHandler = (id) => {
+    const updatedItems = cartItems.filter(item => item._id !== id);
     dispatch(removeItemFromCart(id));
     toast.success("Item removed from cart"); 
   };
 
   const increaseQty = (id, quantity, stock) => {
     const newQty = quantity + 1;
-    if (newQty > stock) {
+    if (stock && newQty > stock) {
       toast.error("Exceeded stock limit");
       return;
     }
@@ -45,9 +40,13 @@ const Cart = () => {
   };
 
   const checkoutHandler = () => {
-    // dispatch(payment(cartItems, restaurant));
-    // // navigate("/delivery");
+    toast.info("Checkout feature coming soon!");
   };
+
+  const getItemName = (item) => item.name || item.foodItem?.name;
+  const getItemPrice = (item) => item.price || item.foodItem?.price;
+  const getItemImage = (item) => item.images?.[0]?.url || item.foodItem?.images?.[0]?.url;
+  const getItemId = (item) => item._id || item.foodItem?._id;
 
   return (
     <>
@@ -59,17 +58,17 @@ const Cart = () => {
             Your Cart: <b>{cartItems.length} items</b>
           </h2>
           <h3 className="mt-5">
-            Restaurant: <b>{restaurant.name}</b>
+            Restaurant: <b>{restaurant?.name || "Selected Restaurant"}</b>
           </h3>
 
           <div className="row d-flex justify-content-between cartt">
             <div className="col-12 col-lg-8">
               {cartItems.map((item) => (
-                <div className="cart-item" key={item._id}>
+                <div className="cart-item" key={getItemId(item)}>
                   <div className="row">
                     <div className="col-4 col-lg-3">
                       <img
-                        src={item.foodItem.images[0].url}
+                        src={getItemImage(item)}
                         alt="items"
                         height="90"
                         width="115"
@@ -77,13 +76,13 @@ const Cart = () => {
                     </div>
 
                     <div className="col-5 col-lg-3">
-                      {item.foodItem.name}
+                      {getItemName(item)}
                     </div>
 
                     <div className="col-4 col-lg-2 mt-4 mt-lg-0">
                       <p id="card_item_price">
                         <FontAwesomeIcon icon={faIndianRupee} size="xs" />
-                        {item.foodItem.price}
+                        {getItemPrice(item)}
                       </p>
                     </div>
 
@@ -92,7 +91,7 @@ const Cart = () => {
                         <span
                           className="btn btn-danger minus"
                           onClick={() =>
-                            decreaseQty(item.foodItem._id, item.quantity)
+                            decreaseQty(getItemId(item), item.quantity)
                           }
                         >
                           -
@@ -109,9 +108,9 @@ const Cart = () => {
                           className="btn btn-primary plus"
                           onClick={() =>
                             increaseQty(
-                              item.foodItem._id,
+                              getItemId(item),
                               item.quantity,
-                              item.foodItem.stock
+                              item.stock
                             )
                           }
                         >
@@ -125,7 +124,7 @@ const Cart = () => {
                         id="delete_cart_item"
                         className="fa fa-trash btn btn-danger"
                         onClick={() =>
-                          removeCartItemHandler(item.foodItem._id)
+                          removeCartItemHandler(getItemId(item))
                         }
                       ></i>
                     </div>
@@ -158,7 +157,7 @@ const Cart = () => {
                     {cartItems
                       .reduce(
                         (acc, item) =>
-                          acc + item.quantity * item.foodItem.price,
+                          acc + item.quantity * (getItemPrice(item) || 0),
                         0
                       )
                       .toFixed(2)}

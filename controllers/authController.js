@@ -5,20 +5,25 @@ const { promisify } = require("util");
 
 const ErrorHandler = require("../utils/errorHandler");
 const Email = require("../utils/email");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
 const sendToken = require("../utils/sendToken");
 
 // Register user
 exports.signup = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password, passwordConfirm, phoneNumber } = req.body;
 
+  const { name, email, password, passwordConfirm, phoneNumber, avatar } = req.body;
+
+  // Provide a default avatar if not present
   const user = await User.create({
     name,
     email,
     password,
     passwordConfirm,
     phoneNumber,
-    avatar,
+    avatar: avatar || {
+      public_id: "default_avatar",
+      url: "https://res.cloudinary.com/demo/image/upload/v1690000000/default_avatar.png"
+    },
   });
 
   sendToken(user, 200, res);

@@ -6,9 +6,9 @@ import {
 } from "../redux/slices/restaurantSlice";
 
 import { createRestaurant, getRestaurants } from "../redux/actions/restaurantAction";
-import Restaurant from "../Components/Restaurant";
-import Loader from "../Components/layout/Loader";
-import Message from "../Components/Message";
+import Restaurant from "./Restaurant";
+import Loader from "./layout/Loader";
+import Message from "./Message";
 import { useDispatch, useSelector } from "react-redux";
 import CountRestaurant from "./CountRestaurant";
 import { useParams } from "react-router-dom";
