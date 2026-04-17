@@ -1,0 +1,20 @@
+# Only this exact env file
+.env
+
+# Dependencies
+node_modules/
+
+# Build files
+build/
+dist/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
