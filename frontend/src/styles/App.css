@@ -1,0 +1,83 @@
+/* Global Reset and Theme */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Primary Colors */
+:root {
+  --primary-color: #e67e22; /* Vibrant Orange */
+  --secondary-color: #2ecc71; /* Light Green */
+}
+
+/* Navbar Styling */
+.navbar {
+  background-color: #fff;
+  padding: 1rem 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logo-order { color: var(--primary-color); }
+.logo-eat { color: var(--secondary-color); }
+
+/* Search Bar */
+.search-container {
+  display: flex;
+  align-items: center;
+  background: #f1f2f6;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  width: 40%;
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 0.5rem;
+  width: 100%;
+}
+
+/* Cart and User Buttons */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cart-btn {
+  color: #333;
+  font-size: 1.2rem;
+  position: relative;
+  text-decoration: none;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+}

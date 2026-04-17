@@ -1,0 +1,640 @@
+/* ==========================================
+   SWIGGY-CLONE HOME.CSS
+   ========================================== */
+
+* { box-sizing: border-box; }
+
+.home-container {
+  background: #f8f8f8;
+  min-height: 100vh;
+}
+
+/* === HERO === */
+.hero-section {
+  background: linear-gradient(135deg, #ff6b35 0%, #e67e22 50%, #f39c12 100%);
+  padding: 48px 24px 52px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='30'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.hero-content { position: relative; }
+
+.hero-title {
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 900;
+  color: white;
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 24px;
+}
+
+.hero-badges {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-badge {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+/* === SEARCH RESULT BANNER === */
+.search-result-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #fff8f0;
+  border-bottom: 1px solid #f0d8c0;
+  font-size: 14px;
+  color: #444;
+}
+
+.clear-search {
+  color: #e67e22;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* === CUISINE PILLS === */
+.cuisine-section {
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 16px;
+}
+
+.cuisine-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 0;
+  scrollbar-width: none;
+}
+
+.cuisine-scroll::-webkit-scrollbar { display: none; }
+
+.cuisine-pill {
+  flex-shrink: 0;
+  padding: 7px 18px;
+  border-radius: 20px;
+  border: 1.5px solid #e8e8e8;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.cuisine-pill:hover { border-color: #e67e22; color: #e67e22; }
+.cuisine-pill.active {
+  background: #e67e22;
+  border-color: #e67e22;
+  color: white;
+}
+
+/* === FILTER BAR === */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: white;
+  border-bottom: 1px solid #f5f5f5;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.results-count {
+  font-size: 14px;
+  color: #777;
+  font-weight: 600;
+}
+
+.filter-bar-right {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #ddd;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-chip:hover { border-color: #e67e22; color: #e67e22; }
+.filter-chip.chip-active {
+  background: #fff3e8;
+  border-color: #e67e22;
+  color: #e67e22;
+}
+
+/* === RESTAURANT GRID === */
+.restaurants-section {
+  padding: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+}
+
+/* === RESTAURANT CARD === */
+.restaurant-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+.card-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  overflow: hidden;
+}
+
+.card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.restaurant-card:hover .card-img {
+  transform: scale(1.05);
+}
+
+.img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%);
+}
+
+.badge-veg {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #2ecc71;
+  color: white;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+.discount-ribbon {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 0 12px 12px 0;
+  z-index: 1;
+  letter-spacing: 0.3px;
+}
+
+/* === CARD BODY === */
+.card-body {
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.rating-chip {
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.card-cuisine {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-address {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid #f5f5f5;
+  margin-top: auto;
+}
+
+.meta-item {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.meta-dot {
+  color: #ccc;
+  font-size: 12px;
+}
+
+/* === SKELETON LOADING === */
+.home-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 24px;
+  padding: 24px;
+}
+
+.skeleton-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.sk-img {
+  width: 100%;
+  height: 190px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.sk-line {
+  height: 14px;
+  border-radius: 8px;
+  margin: 14px 16px 0;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.sk-title { width: 60%; }
+.sk-subtitle { width: 80%; margin-bottom: 0; }
+.sk-short { width: 40%; margin-bottom: 16px; }
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* === EMPTY STATE === */
+.empty-state {
+  text-align: center;
+  padding: 64px 24px;
+}
+
+.empty-state h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 16px 0 8px;
+}
+
+.back-home-btn {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 12px 28px;
+  background: #e67e22;
+  color: white;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.back-home-btn:hover { background: #d35400; color: white; }
+
+@media (max-width: 600px) {
+  .restaurants-section { padding: 16px; }
+  .filter-bar { padding: 10px 16px; }
+}
+
+/* === DISCOVERY SECTION (EXPLORE DISHES) === */
+.discovery-section {
+  padding: 32px 24px;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.section-header {
+  margin-bottom: 20px;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: #777;
+}
+
+.discovery-scroll-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.discovery-scroll {
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 10px 0 30px;
+  scrollbar-width: thin;
+  scrollbar-color: #e67e22 #f0f0f0;
+}
+
+.discovery-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.discovery-scroll::-webkit-scrollbar-thumb {
+  background: #e67e22;
+  border-radius: 10px;
+}
+
+.discovery-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+/* === DISH CARD === */
+.dish-card {
+  width: 280px; /* Fixed width for better grid alignment */
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f0f0f0;
+}
+
+.dish-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+  border-color: #e67e22;
+}
+
+.dish-img-wrapper {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+}
+
+.dish-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.dish-card:hover .dish-img {
+  transform: scale(1.1);
+}
+
+.dish-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dish-card:hover .dish-overlay {
+  opacity: 1;
+}
+
+.quick-add-btn {
+  background: #e67e22;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateY(20px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dish-card:hover .quick-add-btn {
+  transform: translateY(0);
+}
+
+.dish-card.is-out-of-stock {
+  filter: grayscale(0.5);
+  opacity: 0.8;
+}
+
+.out-of-stock-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  background: rgba(231, 76, 60, 0.9);
+  color: white;
+  padding: 4px 12px;
+  font-weight: 900;
+  font-size: 14px;
+  border-radius: 4px;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  border: 2px solid white;
+}
+
+.quick-add-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: translateY(0);
+}
+
+.dish-badge-veg, .dish-badge-nonveg, .dish-badge-egg {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-size: 14px;
+}
+
+.dish-info {
+  padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dish-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.dish-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.dish-rating {
+  font-size: 11px;
+  font-weight: 700;
+  background: #27ae60;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.dish-restaurant {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 12px;
+}
+
+.dish-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dish-price {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 16px;
+}
+
+.mobile-add-btn {
+  display: none; /* Only show on mobile */
+  background: #fff;
+  color: #27ae60;
+  border: 1px solid #ddd;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .mobile-add-btn { display: block; }
+  .dish-overlay { display: none; }
+  .dish-card { flex: 0 0 200px; }
+  .discovery-section { padding: 20px 16px; }
+}
+
+/* === SKELETON DISCOVERY === */
+.discovery-skeleton-scroll {
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  gap: 24px;
+  padding: 10px 0;
+  overflow: hidden;
+}
+
+.skeleton-dish-card {
+  flex: 0 0 240px;
+  height: 260px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 16px;
+}

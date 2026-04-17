@@ -1,0 +1,65 @@
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-right: 20px;
+}
+
+.stat-icon.users { background: #e3f2fd; color: #1976d2; }
+.stat-icon.owners { background: #f3e5f5; color: #7b1fa2; }
+.stat-icon.stores { background: #e8f5e9; color: #388e3c; }
+.stat-icon.orders { background: #fff3e0; color: #f57c00; }
+.stat-icon.revenue-icon { background: #e0f2f1; color: #00796b; }
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.stat-card.revenue {
+    grid-column: span 2;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+}
+
+.stat-card.revenue .stat-info p {
+    color: rgba(255,255,255,0.7);
+}
+
+@media (max-width: 1200px) {
+    .stat-card.revenue {
+        grid-column: span 1;
+    }
+}
