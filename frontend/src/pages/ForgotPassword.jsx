@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { BASE_URL } from '../utils/api';
 import '../styles/Auth.css';
 
 const ForgotPassword = () => {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -22,7 +23,8 @@ const ForgotPassword = () => {
             const data = await response.json();
 
             if (response.ok) {
-                toast.success('Reset link sent! Please check your email.', { duration: 5000 });
+                toast.success('OTP sent to your email!', { duration: 5000 });
+                navigate('/password/reset', { state: { email } });
             } else {
                 toast.error(data.message || 'Something went wrong', { duration: 5000 });
             }

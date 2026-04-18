@@ -8,12 +8,16 @@ import {
   deleteRestaurant,
   getOwnerRestaurant,
   updateRestaurant,
+  searchAll,
 } from "../controllers/restaurantController.js";
 
 import { protect, restrictTo } from "../controllers/authController.js";
 import { getMenusByRestaurant } from "../controllers/menuController.js";
 
 router.route("/").get(getAllRestaurants).post(createRestaurant);
+
+// Search suggestions
+router.get("/search", searchAll);
 
 // Protected owner route — must come before /:storeId to not clash
 router.get("/owner", protect, restrictTo("restaurant-owner"), getOwnerRestaurant);

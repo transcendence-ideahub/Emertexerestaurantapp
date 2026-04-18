@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
@@ -21,8 +21,32 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import UserList from './components/admin/UserList';
 import RestaurantList from './components/admin/RestaurantList';
 import OrderList from './components/admin/OrderList';
+import DeliveryDashboard from './components/delivery/DeliveryDashboard';
+import DeliveryLogin from './pages/DeliveryLogin';
+import DeliveryRegister from './pages/DeliveryRegister';
+import PartnerLogin from './pages/PartnerLogin';
+import { BASE_URL } from './utils/api';
 
 function App() {
+  useEffect(() => {
+    // Periodic update every 30 seconds to track activity while tab is open
+    const interval = setInterval(() => {
+      localStorage.setItem('lastActiveTime', Date.now().toString());
+    }, 30000);
+
+    // Update on tab close/unload
+    const handleUnload = () => {
+      localStorage.setItem('lastActiveTime', Date.now().toString());
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, []);
+
   return (
     <Router>
       <Toaster position="top-center" />
@@ -33,7 +57,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/password/forgot" element={<ForgotPassword />} />
-          <Route path="/users/resetPassword/:token" element={<ResetPassword />} />
+          <Route path="/password/reset" element={<ResetPassword />} />
           <Route path="/restaurant/:id" element={<Menu />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/success" element={<OrderSuccess />} />
@@ -43,6 +67,10 @@ function App() {
           <Route path="/users/password/update" element={<UpdatePassword />} />
           <Route path="/orders/me" element={<ListOrders />} />
           <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+          <Route path="/delivery/login" element={<DeliveryLogin />} />
+          <Route path="/delivery/register" element={<DeliveryRegister />} />
+          <Route path="/delivery/dashboard" element={<DeliveryDashboard />} />
+          <Route path="/partner/login" element={<PartnerLogin />} />
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute isAdmin={true}><AdminDashboard /></ProtectedRoute>} />

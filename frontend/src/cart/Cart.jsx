@@ -52,7 +52,8 @@ const Cart = () => {
                 itemsPrice: subtotal,
                 taxPrice: 0,
                 deliveryPrice: 40,
-                totalPrice: subtotal + 40,
+                discountPrice: discount,
+                totalPrice: total,
                 shippingInfo: {
                     address: "Sector V, Salt Lake",
                     city: "Kolkata",
@@ -90,6 +91,18 @@ const Cart = () => {
 
     // Calculate Subtotal
     const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.price, 0);
+
+    // Calculate Discount (assuming all items from same restaurant)
+    const restaurantData = cartItems[0]?.restaurantData || { discountPercentage: 0, maxDiscount: 0, minOrderValue: 0 };
+    let discount = 0;
+    if (subtotal >= restaurantData.minOrderValue && restaurantData.discountPercentage > 0) {
+        discount = (subtotal * restaurantData.discountPercentage) / 100;
+        if (restaurantData.maxDiscount > 0 && discount > restaurantData.maxDiscount) {
+            discount = restaurantData.maxDiscount;
+        }
+    }
+
+    const total = subtotal - discount + 40; // 40 is delivery fee
 
     if (cartItems.length === 0) {
         return (
@@ -136,9 +149,15 @@ const Cart = () => {
                         <span>Delivery Fee:</span>
                         <span>₹40</span>
                     </div>
+                    {discount > 0 && (
+                        <div className="summary-row discount text-success fw-bold">
+                            <span>Restaurant Discount:</span>
+                            <span>-₹{discount.toFixed(0)}</span>
+                        </div>
+                    )}
                     <div className="summary-row total">
                         <span>Total:</span>
-                        <span>₹{subtotal + 40}</span>
+                        <span>₹{total.toFixed(0)}</span>
                     </div>
                     <button 
                         onClick={handleCheckout} 

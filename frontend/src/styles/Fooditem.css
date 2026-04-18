@@ -133,7 +133,7 @@
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@
 }
 
 .swiggy-add-btn:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .plus-icon {
@@ -173,6 +173,7 @@
     height: 110px;
   }
 }
+
 .menu-item-card.is-out-of-stock {
   opacity: 0.6;
   filter: grayscale(0.5);

@@ -22,6 +22,10 @@ const foodSchema = new mongoose.Schema({
     },
     default: "Veg",
   },
+  cuisines: {
+    type: [String],
+    default: ["Other"],
+  },
   description: {
     type: String,
     required: [true, "Please enter FoodItem description"],

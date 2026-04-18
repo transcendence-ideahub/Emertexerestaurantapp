@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { BASE_URL } from '../utils/api';
 import '../styles/Auth.css';
 
 const ResetPassword = () => {
+    const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { token } = useParams(); // Grabs token from /users/resetPassword/:token
+    const { state } = useLocation();
+    const email = state?.email || '';
     const navigate = useNavigate();
 
     const submitHandler = async (e) => {
@@ -23,10 +25,10 @@ const ResetPassword = () => {
         }
 
         try {
-            const response = await fetch(`${BASE_URL}/users/password/reset/${token}`, {
+            const response = await fetch(`${BASE_URL}/users/password/reset`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password, passwordConfirm }),
+                body: JSON.stringify({ email, otp, password, passwordConfirm }),
             });
 
             const data = await response.json();
@@ -35,7 +37,7 @@ const ResetPassword = () => {
                 toast.success('Password reset successfully! Please login.', { duration: 5000 });
                 navigate('/login');
             } else {
-                toast.error(data.message || 'Token is invalid or expired', { duration: 5000 });
+                toast.error(data.message || 'OTP is invalid or expired', { duration: 5000 });
             }
         } catch (err) {
             toast.error('Failed to connect to the server.', { duration: 5000 });
@@ -51,6 +53,17 @@ const ResetPassword = () => {
                 <p className="auth-instruction">Please enter your new secure password below.</p>
 
                 <form onSubmit={submitHandler}>
+                    <div className="mb-3">
+                        <label className="auth-label">Enter OTP (sent to {email})</label>
+                        <input 
+                            type="text" 
+                            className="form-control auth-input" 
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            required 
+                            placeholder="6-digit code"
+                        />
+                    </div>
                     <div className="mb-3">
                         <label className="auth-label">New Password</label>
                         <input 

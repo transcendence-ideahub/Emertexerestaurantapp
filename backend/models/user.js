@@ -41,12 +41,34 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "restaurant-owner", "admin"],
+      enum: ["user", "restaurant-owner", "admin", "delivery"],
       default: "user",
+    },
+    isAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    currentLocation: {
+      lat: Number,
+      lng: Number,
     },
     avatar: {
       public_id: String,
       url: String,
+    },
+    address: {
+      type: String,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        index: "2dsphere",
+      },
     },
     passwordChangedAt: Date,
     passwordResetToken: String,

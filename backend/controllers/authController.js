@@ -15,13 +15,20 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 
 // Send Registration OTP
 export const sendRegistrationOTP = catchAsyncErrors(async (req, res, next) => {
+  console.log("sendRegistrationOTP called with body:", req.body);
   const { email, name } = req.body;
   if (!email || !name) return next(new ErrorHandler("Please provide name and email", 400));
 
-  const userExists = await User.findOne({ email });
-  if (userExists) return next(new ErrorHandler("Email already registered", 400));
-
   const otpCode = generateOTP();
+  console.log("-----------------------------------------");
+  console.log(`🚀 REGISTRATION OTP FOR ${email}: ${otpCode}`);
+  console.log("-----------------------------------------");
+
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    console.log(`User already exists for email: ${email}`);
+    return next(new ErrorHandler("Email already registered", 400));
+  }
 
   // Create OTP record (hashing is handled by pre('save') hook, but wait, findOneAndUpdate skips 'save' hooks!)
   // Mongoose findOneAndUpdate bypasses pre-save. Better to explicitly delete and create.
@@ -40,28 +47,43 @@ export const sendRegistrationOTP = catchAsyncErrors(async (req, res, next) => {
 
 // Register user
 export const signup = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password, passwordConfirm, phoneNumber, avatar, otp, role, restaurantName, restaurantAddress } = req.body;
+  const { 
+    name, email, password, passwordConfirm, phoneNumber, 
+    avatar, otp, role, restaurantName, restaurantAddress, 
+    address, location 
+  } = req.body;
 
-  if (!otp) return next(new ErrorHandler("Please enter your OTP", 400));
-
+  // Verify OTP first
   const otpRecord = await OTP.findOne({ email });
   if (!otpRecord) return next(new ErrorHandler("OTP expired or invalid", 400));
 
   const isOTPMatch = await otpRecord.correctOTP(otp, otpRecord.otp);
   if (!isOTPMatch) return next(new ErrorHandler("Incorrect OTP", 400));
 
-  const user = await User.create({
+  // Prepare user data
+  const userData = {
     name,
     email,
     password,
     passwordConfirm,
     phoneNumber,
-    role: role || "user",
     avatar: avatar || {
       public_id: "default_avatar",
       url: "https://res.cloudinary.com/demo/image/upload/v1690000000/default_avatar.png"
     },
-  });
+    role: role || "user",
+    address: address || restaurantAddress,
+  };
+
+  // Format GeoJSON location if coordinates provided
+  if (location && location.lat && location.lng) {
+    userData.location = {
+      type: "Point",
+      coordinates: [location.lng, location.lat]
+    };
+  }
+
+  const user = await User.create(userData);
 
   // If registering as restaurant-owner, create their restaurant immediately
   if (role === "restaurant-owner") {
@@ -161,6 +183,9 @@ export const getUserProfile = catchAsyncErrors(async (req, res, next) => {
 export const sendPasswordOTP = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findById(req.user.id);
   const otpCode = generateOTP();
+  console.log("-----------------------------------------");
+  console.log(`🔑 PASSWORD UPDATE OTP FOR ${user.email}: ${otpCode}`);
+  console.log("-----------------------------------------");
 
   await OTP.findOneAndDelete({ email: user.email });
   await OTP.create({ email: user.email, otp: otpCode });
@@ -206,7 +231,7 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
   });
 });
 
-// Forgot Password
+// Forgot Password (Send OTP)
 export const forgotPassword = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
@@ -214,45 +239,62 @@ export const forgotPassword = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("There is no user with that email address.", 404));
   }
 
-  const resetToken = user.createPasswordResetToken();
-  await user.save({ validateBeforeSave: false });
+  const otpCode = generateOTP();
+  console.log("-----------------------------------------");
+  console.log(`🔑 PASSWORD RESET OTP FOR ${user.email}: ${otpCode}`);
+  console.log("-----------------------------------------");
+
+  await OTP.findOneAndDelete({ email: user.email });
+  await OTP.create({ email: user.email, otp: otpCode });
 
   try {
-    const resetURL = `${process.env.FRONTEND_URL}/users/resetPassword/${resetToken}`;
-    await new Email(user, resetURL).sendPasswordReset();
+    const emailObj = new Email(user, "");
+    await emailObj.sendOTP(otpCode);
 
     res.status(200).json({
-      status: "success",
-      message: "Token sent to email!",
+      success: true,
+      message: "OTP sent to your registered email",
     });
   } catch (err) {
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-
+    await OTP.findOneAndDelete({ email: user.email });
     return next(new ErrorHandler("There was an error sending the email, try again later!", 500));
   }
 });
 
-// Reset Password
+// Reset Password (Verify OTP and update)
 export const resetPassword = catchAsyncErrors(async (req, res, next) => {
-  const hashedToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+  const { email, otp, password, passwordConfirm } = req.body;
 
-  const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    return next(new ErrorHandler("Token is invalid or has expired", 400));
+  if (!email || !otp || !password || !passwordConfirm) {
+    return next(new ErrorHandler("Please provide email, otp, password and passwordConfirm", 400));
   }
 
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+  const otpRecord = await OTP.findOne({ email });
+  if (!otpRecord) {
+    return next(new ErrorHandler("OTP expired or invalid", 400));
+  }
+
+  const isOTPMatch = await otpRecord.correctOTP(otp, otpRecord.otp);
+  if (!isOTPMatch) {
+    return next(new ErrorHandler("Incorrect OTP", 400));
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  
+  // Clear any old reset tokens
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
 
   await user.save();
+
+  await OTP.deleteOne({ _id: otpRecord._id });
+
   sendToken(user, 200, res);
 });
 
@@ -275,7 +317,15 @@ export const updateProfile = catchAsyncErrors(async (req, res, next) => {
     name: req.body.name,
     email: req.body.email,
     phoneNumber: req.body.phoneNumber,
+    address: req.body.address,
   };
+
+  if (req.body.location && req.body.location.lat && req.body.location.lng) {
+    newUserData.location = {
+      type: "Point",
+      coordinates: [req.body.location.lng, req.body.location.lat],
+    };
+  }
 
   if (req.body.avatar) {
     newUserData.avatar = req.body.avatar;

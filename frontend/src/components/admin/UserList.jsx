@@ -59,6 +59,47 @@ const UserList = () => {
         }
     };
 
+    const [passwordData, setPasswordData] = useState({}); // { userId: { value: '', visible: false } }
+    
+    const handlePasswordChange = (userId, value) => {
+        setPasswordData(prev => ({
+            ...prev,
+            [userId]: { ...prev[userId], value }
+        }));
+    };
+
+    const togglePasswordVisibility = (userId) => {
+        setPasswordData(prev => ({
+            ...prev,
+            [userId]: { ...prev[userId], visible: !prev[userId]?.visible }
+        }));
+    };
+
+    const resetPassword = async (id) => {
+        const password = passwordData[id]?.value;
+        if (!password || password.length < 6) {
+            return toast.error("Password must be at least 6 characters");
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/admin/users/${id}/password`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password }),
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success("Password updated successfully");
+                handlePasswordChange(id, ''); // Clear input
+            } else {
+                toast.error(data.message || "Failed to update password");
+            }
+        } catch (err) {
+            toast.error("Connection error");
+        }
+    };
+
     if (loading) return <div className="loader"></div>;
 
     return (
@@ -78,7 +119,7 @@ const UserList = () => {
                                     <th>User</th>
                                     <th>Email</th>
                                     <th>Role</th>
-                                    <th>Joined</th>
+                                    <th>Reset Password</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -99,15 +140,37 @@ const UserList = () => {
                                                 className={`form-select form-select-sm border-0 ${user.role === 'admin' ? 'text-danger fw-bold' : user.role === 'restaurant-owner' ? 'text-primary' : ''}`}
                                                 value={user.role}
                                                 onChange={(e) => updateRole(user._id, e.target.value)}
-                                                style={{ width: '150px' }}
+                                                style={{ width: '130px' }}
                                             >
                                                 <option value="user">Customer</option>
                                                 <option value="restaurant-owner">Owner</option>
                                                 <option value="admin">Admin</option>
                                             </select>
                                         </td>
-                                        <td className="text-muted small">
-                                            {new Date(user.createdAt).toLocaleDateString()}
+                                        <td>
+                                            <div className="input-group input-group-sm" style={{ width: '200px' }}>
+                                                <input 
+                                                    type={passwordData[user._id]?.visible ? "text" : "password"} 
+                                                    className="form-control" 
+                                                    placeholder="New password"
+                                                    value={passwordData[user._id]?.value || ''}
+                                                    onChange={(e) => handlePasswordChange(user._id, e.target.value)}
+                                                />
+                                                <button 
+                                                    className="btn btn-outline-secondary" 
+                                                    type="button"
+                                                    onClick={() => togglePasswordVisibility(user._id)}
+                                                >
+                                                    {passwordData[user._id]?.visible ? '👁️' : '🙈'}
+                                                </button>
+                                                <button 
+                                                    className="btn btn-primary" 
+                                                    type="button"
+                                                    onClick={() => resetPassword(user._id)}
+                                                >
+                                                    ✓
+                                                </button>
+                                            </div>
                                         </td>
                                         <td>
                                             <button 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { BASE_URL } from "../../utils/api";
+import AddressAutocomplete from "../AddressAutocomplete";
+import OrderTracker from "../order/OrderTracker";
 
 const STATUS_FLOW = {
   Processing: "Preparing",
@@ -10,12 +12,14 @@ const STATUS_FLOW = {
 };
 
 const STATUS_BADGE = {
-  Processing:         { color: "#f39c12", icon: "🕐" },
-  Preparing:          { color: "#3498db", icon: "👨‍🍳" },
+  Processing: { color: "#f39c12", icon: "🕐" },
+  Preparing: { color: "#3498db", icon: "👨‍🍳" },
   "Out for Delivery": { color: "#9b59b6", icon: "🛵" },
-  Delivered:          { color: "#2ecc71", icon: "✅" },
-  Cancelled:          { color: "#e74c3c", icon: "❌" },
+  Delivered: { color: "#2ecc71", icon: "✅" },
+  Cancelled: { color: "#e74c3c", icon: "❌" },
 };
+
+const CUISINE_TAGS = ['North Indian', 'South Indian', 'Chinese', 'Pizza', 'Biryani', 'Street Food', 'Desserts', 'Healthy', 'Bread', 'Fried Chicken', 'Other'];
 
 const PartnerDashboard = () => {
   const [activeTab, setActiveTab] = useState("orders");
@@ -32,14 +36,15 @@ const PartnerDashboard = () => {
     price: '',
     stock: '',
     imageUrl: '',
-    dishType: 'Veg'
+    dishType: 'Veg',
+    cuisines: ['Other']
   });
   const [addingItem, setAddingItem] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const handleGenerateAI = async (itemState, setItemState) => {
     if (!itemState.name) return toast.error("Please enter item name first");
-    
+
     setIsGeneratingAI(true);
     try {
       const res = await fetch(`${BASE_URL}/ai/generate-description`, {
@@ -64,15 +69,28 @@ const PartnerDashboard = () => {
 
   // Edit restaurant form
   const [editMode, setEditMode] = useState(false);
-  const [restaurantForm, setRestaurantForm] = useState({ 
-    name: "", 
-    address: "", 
+  const [restaurantForm, setRestaurantForm] = useState({
+    name: "",
+    address: "",
+    location: { lat: null, lng: null },
     imageUrl: "",
     cuisines: "",
     costForTwo: "",
     deliveryTime: "",
-    discount: ""
+    discount: "",
+    discountPercentage: 0,
+    maxDiscount: 0,
+    minOrderValue: 0
   });
+
+  const handleAddressSelect = (data) => {
+    setRestaurantForm(prev => ({
+      ...prev,
+      address: data.address,
+      location: { lat: data.lat, lng: data.lng }
+    }));
+  };
+
   const [isUpdatingRestaurant, setIsUpdatingRestaurant] = useState(false);
 
   // Menu item edit state
@@ -106,8 +124,8 @@ const PartnerDashboard = () => {
           if (orderData.orders.length > 0 && orderData.orders[0].restaurant) {
             const rest = orderData.orders[0].restaurant;
             setRestaurant(rest);
-            setRestaurantForm({ 
-              name: rest.name || "", 
+            setRestaurantForm({
+              name: rest.name || "",
               address: rest.address || "",
               imageUrl: rest.images?.[0]?.url || "",
               cuisines: rest.cuisines?.join(", ") || "",
@@ -124,14 +142,21 @@ const PartnerDashboard = () => {
           const restData = await restRes.json();
           if (restData.success && restData.restaurant) {
             setRestaurant(restData.restaurant);
-            setRestaurantForm({ 
-              name: restData.restaurant.name, 
+            setRestaurantForm({
+              name: restData.restaurant.name,
               address: restData.restaurant.address,
               imageUrl: restData.restaurant.images?.[0]?.url || "",
               cuisines: restData.restaurant.cuisines?.join(", ") || "",
               costForTwo: restData.restaurant.costForTwo || "",
               deliveryTime: restData.restaurant.deliveryTime || "",
-              discount: restData.restaurant.discount || ""
+              discount: restData.restaurant.discount || "",
+              discountPercentage: restData.restaurant.discountPercentage || 0,
+              maxDiscount: restData.restaurant.maxDiscount || 0,
+              minOrderValue: restData.restaurant.minOrderValue || 0,
+              location: restData.restaurant.location?.coordinates ? {
+                lng: restData.restaurant.location.coordinates[0],
+                lat: restData.restaurant.location.coordinates[1]
+              } : { lat: null, lng: null }
             });
 
             // Load menu items for this restaurant
@@ -183,13 +208,10 @@ const PartnerDashboard = () => {
     if (!restaurant?._id) return toast.error("No restaurant found");
     setAddingItem(true);
     try {
-      const payload = { ...newItem, restaurant: restaurant._id };
-      // Use the imageUrl field to send the base64 data
-      if (newItem.imageUrl) {
-        payload.imageUrl = newItem.imageUrl;
-      } else {
-        payload.images = [{ public_id: "default", url: "https://res.cloudinary.com/demo/image/upload/v1690000000/food.jpg" }];
-      }
+      const payload = { 
+        ...newItem, 
+        restaurant: restaurant._id
+      };
 
       const res = await fetch(`${BASE_URL}/eats/item/`, {
         method: "POST",
@@ -201,7 +223,7 @@ const PartnerDashboard = () => {
       if (res.ok && data.success) {
         toast.success("Item added to menu!");
         setMenuItems(prev => [data.foodItem, ...prev]);
-        setNewItem({ name: "", price: "", description: "", stock: "", imageUrl: "", dishType: "Veg" });
+        setNewItem({ name: "", price: "", description: "", stock: "", imageUrl: "", dishType: "Veg", cuisines: ["Other"] });
       } else {
         toast.error(data.message || "Failed to add item");
       }
@@ -268,6 +290,27 @@ const PartnerDashboard = () => {
     }
   };
 
+  const toggleShopStatus = async () => {
+    if (!restaurant?._id) return;
+    const newStatus = !restaurant.isActive;
+    
+    try {
+      const res = await fetch(`${BASE_URL}/eats/stores/${restaurant._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: newStatus }),
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRestaurant(data.restaurant);
+        toast.success(`Shop is now ${newStatus ? "OPEN" : "CLOSED"}`);
+      }
+    } catch {
+      toast.error("Failed to update shop status");
+    }
+  };
+
   if (loading) return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: "70vh" }}>
       <div className="spinner-border" style={{ color: "#e67e22" }} />
@@ -288,7 +331,33 @@ const PartnerDashboard = () => {
           </div>
           <div>
             <h2 className="fw-bold mb-0" style={{ fontSize: "1.8rem" }}>Partner Dashboard</h2>
-            <p className="mb-0 opacity-75">Welcome, {user?.name} · {restaurant?.name || "Your Restaurant"}</p>
+            <div className="d-flex align-items-center gap-3 mt-1">
+              <p className="mb-0 opacity-75">Welcome, {user?.name} · {restaurant?.name || "Your Restaurant"}</p>
+              <div 
+                onClick={toggleShopStatus}
+                className={`px-3 py-1 rounded-pill border d-flex align-items-center gap-2 shadow-sm`}
+                style={{ 
+                  cursor: 'pointer', 
+                  backgroundColor: restaurant?.isActive ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
+                  borderColor: restaurant?.isActive ? '#2ecc71' : '#e74c3c',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                <span style={{ fontSize: '10px' }}>{restaurant?.isActive ? "🟢" : "🔴"}</span>
+                <span className="fw-bold" style={{ fontSize: '12px', color: restaurant?.isActive ? '#2ecc71' : '#e74c3c' }}>
+                  {restaurant?.isActive ? "SHOP OPEN" : "SHOP CLOSED"}
+                </span>
+                <div className="form-check form-switch m-0" style={{ pointerEvents: 'none' }}>
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    checked={restaurant?.isActive || false} 
+                    readOnly
+                    style={{ width: '2em', height: '1em' }}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
           <div className="ms-auto d-flex gap-3">
             <div className="text-center bg-white bg-opacity-10 rounded-3 px-4 py-2">
@@ -313,7 +382,7 @@ const PartnerDashboard = () => {
           <nav className="d-flex gap-1">
             {[
               { key: "orders", label: "📋 Live Orders", count: activeOrders.length },
-              { key: "menu",   label: "🍽️ Menu Manager" },
+              { key: "menu", label: "🍽️ Menu Manager" },
               { key: "details", label: "⚙️ Restaurant Details" },
             ].map(tab => (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -369,15 +438,49 @@ const PartnerDashboard = () => {
                             <span style={{ color: "#e67e22" }}>₹{order.totalPrice}</span>
                           </div>
                         </div>
-                        <div className="d-flex justify-content-between align-items-center">
+                        
+                        {/* Live Tracking for Owner */}
+                        {order.orderStatus === "Out for Delivery" && (
+                          <div className="mt-4 border-top pt-4">
+                            <div className="d-flex align-items-center gap-2 mb-3">
+                              <span className="badge bg-success" style={{ borderRadius: "50%", padding: "5px" }}> </span>
+                              <h6 className="fw-bold mb-0" style={{ color: "#2ecc71" }}>Live Delivery Tracking</h6>
+                            </div>
+                            <OrderTracker order={order} />
+                          </div>
+                        )}
+                        
+                        <div className="d-flex justify-content-between align-items-center mt-3">
                           <small className="text-muted">📍 {order.shippingInfo?.address}, {order.shippingInfo?.city}</small>
-                          {nextStatus && (
-                            <button className="btn btn-sm text-white fw-bold px-4"
-                              onClick={() => updateStatus(order._id, nextStatus)}
-                              style={{ backgroundColor: badge.color, borderRadius: "8px" }}>
-                              Mark as {nextStatus} →
-                            </button>
-                          )}
+                          <div className="d-flex gap-2">
+                            {order.orderStatus !== "Cancelled" && order.orderStatus !== "Delivered" && (
+                              <button className="btn btn-sm btn-outline-danger fw-bold px-3"
+                                onClick={() => {
+                                  if(window.confirm("Are you sure you want to decline this order? Stock will be restored.")) {
+                                    updateStatus(order._id, "Cancelled");
+                                  }
+                                }}
+                                style={{ borderRadius: "8px" }}>
+                                Decline
+                              </button>
+                            )}
+                            {nextStatus === "Delivered" ? (
+                              <div className="d-flex flex-column align-items-end">
+                                <span className="badge bg-warning text-dark px-3 py-2" style={{ borderRadius: "8px" }}>
+                                  ⏳ Waiting for Delivery Partner
+                                </span>
+                                {order.deliveryOtp && (
+                                  <small className="text-muted mt-1">OTP: {order.deliveryOtp}</small>
+                                )}
+                              </div>
+                            ) : nextStatus ? (
+                              <button className="btn btn-sm text-white fw-bold px-4"
+                                onClick={() => updateStatus(order._id, nextStatus)}
+                                style={{ backgroundColor: badge.color, borderRadius: "8px" }}>
+                                Mark as {nextStatus} →
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -410,7 +513,7 @@ const PartnerDashboard = () => {
         {activeTab === "menu" && (
           <div>
             <h5 className="fw-bold mb-3" style={{ color: "#2c3e50" }}>Menu Manager</h5>
-            
+
             {/* Add New Item Form */}
             <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: "16px" }}>
               <div className="card-body p-4">
@@ -446,12 +549,48 @@ const PartnerDashboard = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="col-md-12">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label className="form-label small fw-bold text-muted mb-0">Cuisine Tags (Select Multiple)</label>
+                        <button 
+                          type="button" 
+                          className="btn btn-link btn-sm text-decoration-none p-0" 
+                          style={{ fontSize: '11px' }}
+                          onClick={() => setNewItem(p => ({ ...p, cuisines: [] }))}
+                        >
+                          🗑️ Clear All
+                        </button>
+                      </div>
+                      <div className="d-flex flex-wrap gap-2 p-2 bg-light rounded border">
+                        {(restaurant?.cuisines?.length > 0 ? restaurant.cuisines : CUISINE_TAGS).map(tag => {
+                          const isSelected = newItem.cuisines.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline-secondary'}`}
+                              style={{ borderRadius: '20px', fontSize: '11px' }}
+                              onClick={() => {
+                                setNewItem(p => ({
+                                  ...p,
+                                  cuisines: isSelected 
+                                    ? p.cuisines.filter(t => t !== tag)
+                                    : [...p.cuisines, tag]
+                                }));
+                              }}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div className="col-12">
                       <div className="d-flex justify-content-between align-items-center mb-1">
                         <label className="form-label small fw-bold text-muted mb-0">Description</label>
-                        <button 
-                          type="button" 
-                          className="btn btn-sm btn-outline-primary py-0" 
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-primary py-0"
                           style={{ fontSize: '11px', borderRadius: '20px' }}
                           onClick={() => handleGenerateAI(newItem, setNewItem)}
                           disabled={isGeneratingAI}
@@ -464,7 +603,7 @@ const PartnerDashboard = () => {
                     <div className="col-12">
                       <label className="form-label small fw-bold text-muted d-block">Dish Image (JPG, PNG, GIF)</label>
                       <div className="d-flex align-items-center gap-3">
-                        <input type="file" accept="image/*" className="d-none" id="dish-upload" 
+                        <input type="file" accept="image/*" className="d-none" id="dish-upload"
                           onChange={async (e) => {
                             if (e.target.files?.[0]) {
                               const base64 = await handleFileRead(e.target.files[0]);
@@ -505,13 +644,13 @@ const PartnerDashboard = () => {
                       <div className="card-body p-3">
                         <div className="d-flex gap-3 align-items-start mb-3">
                           {item.images?.[0]?.url && (
-                            <img src={item.images[0].url} alt={item.name} 
+                            <img src={item.images[0].url} alt={item.name}
                               style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "8px", border: "1px solid #eee" }} />
                           )}
                           <div className="flex-grow-1">
                             <div className="d-flex justify-content-between align-items-start mb-1">
                               <h6 className="fw-bold mb-0">
-                                {item.name} 
+                                {item.name}
                                 <span className="ms-2" style={{ fontSize: "14px" }}>
                                   {item.dishType === "Veg" ? "🟢" : item.dishType === "Non-Veg" ? "🔴" : "🟡"}
                                 </span>
@@ -526,6 +665,11 @@ const PartnerDashboard = () => {
                               </div>
                             </div>
                             <p className="text-muted small mb-0" style={{ lineHeight: "1.4", height: "40px", overflow: "hidden" }}>{item.description}</p>
+                            <div className="mt-2 d-flex flex-wrap gap-1">
+                              {(item.cuisines || ['Other']).map(c => (
+                                <span key={c} className="badge bg-light text-dark border" style={{ fontSize: "10px" }}>🏷️ {c}</span>
+                              ))}
+                            </div>
                           </div>
                         </div>
                         <div className="d-flex justify-content-between align-items-center">
@@ -609,21 +753,21 @@ const PartnerDashboard = () => {
                   <form onSubmit={async (e) => {
                     e.preventDefault();
                     setIsUpdatingRestaurant(true);
-                      try {
-                        // Convert cuisines back to array
-                        const payload = { 
-                          ...restaurantForm,
-                          cuisines: restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c)
-                        };
+                    try {
+                      // Convert cuisines back to array
+                      const payload = {
+                        ...restaurantForm,
+                        cuisines: restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c)
+                      };
 
-                        const res = await fetch(`${BASE_URL}/eats/stores/${restaurant._id}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
-                          credentials: "include",
-                        });
-                        const data = await res.json();
-                        if (res.ok && data.success) {
+                      const res = await fetch(`${BASE_URL}/eats/stores/${restaurant._id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                        credentials: "include",
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.success) {
                         toast.success("Restaurant details saved!");
                         setRestaurant(data.restaurant);
                         setEditMode(false);
@@ -642,11 +786,89 @@ const PartnerDashboard = () => {
                     </div>
                     <div className="mb-3">
                       <label className="form-label fw-bold small text-muted">Address</label>
-                      <input className="form-control py-2" value={restaurantForm.address} onChange={e => setRestaurantForm(p => ({ ...p, address: e.target.value }))} required />
+                      <AddressAutocomplete
+                        placeholder="Search for your restaurant location..."
+                        onAddressSelect={handleAddressSelect}
+                        initialValue={restaurantForm.address}
+                      />
                     </div>
-                    <div className="mb-3">
-                      <label className="form-label fw-bold small text-muted">Cuisines (comma separated)</label>
-                      <input className="form-control py-2" value={restaurantForm.cuisines} onChange={e => setRestaurantForm(p => ({ ...p, cuisines: e.target.value }))} placeholder="North Indian, Chinese, etc." />
+                    <div className="mb-4">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label className="form-label fw-bold small text-muted mb-0">Restaurant Cuisines (Centralized List)</label>
+                        <small className="text-muted" style={{ fontSize: '10px' }}>These will be available for your dishes</small>
+                      </div>
+                      <div className="d-flex flex-wrap gap-2 p-2 bg-light rounded border mb-2">
+                        {(restaurantForm.cuisines || "").split(",").map(c => c.trim()).filter(c => c).map(tag => (
+                          <div key={tag} className="badge bg-primary d-flex align-items-center gap-2 p-2" style={{ borderRadius: '20px', fontSize: '11px' }}>
+                            {tag}
+                            <span 
+                              style={{ cursor: 'pointer' }} 
+                              onClick={() => {
+                                const current = restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c);
+                                setRestaurantForm(p => ({ ...p, cuisines: current.filter(t => t !== tag).join(", ") }));
+                              }}
+                            >
+                              ✕
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="input-group input-group-sm">
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          placeholder="Add new tag (e.g. Italian)" 
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = e.target.value.trim();
+                              if (val) {
+                                const current = restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c);
+                                if (!current.includes(val)) {
+                                  setRestaurantForm(p => ({ ...p, cuisines: [...current, val].join(", ") }));
+                                }
+                                e.target.value = '';
+                              }
+                            }
+                          }}
+                        />
+                        <button 
+                          className="btn btn-outline-primary" 
+                          type="button"
+                          onClick={(e) => {
+                            const input = e.target.previousSibling;
+                            const val = input.value.trim();
+                            if (val) {
+                              const current = restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c);
+                              if (!current.includes(val)) {
+                                setRestaurantForm(p => ({ ...p, cuisines: [...current, val].join(", ") }));
+                              }
+                              input.value = '';
+                            }
+                          }}
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <div className="mt-2 d-flex flex-wrap gap-1">
+                        <small className="text-muted d-block w-100 mb-1" style={{ fontSize: '10px' }}>Quick Add Recommended:</small>
+                        {CUISINE_TAGS.filter(t => t !== 'Other').map(t => (
+                          <button 
+                            key={t}
+                            type="button" 
+                            className="btn btn-outline-secondary py-0 px-2" 
+                            style={{ fontSize: '10px', borderRadius: '10px' }}
+                            onClick={() => {
+                              const current = restaurantForm.cuisines.split(",").map(c => c.trim()).filter(c => c);
+                              if (!current.includes(t)) {
+                                setRestaurantForm(p => ({ ...p, cuisines: [...current, t].join(", ") }));
+                              }
+                            }}
+                          >
+                            + {t}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="row mb-3">
                       <div className="col-6">
@@ -659,13 +881,27 @@ const PartnerDashboard = () => {
                       </div>
                     </div>
                     <div className="mb-3">
-                      <label className="form-label fw-bold small text-muted">Active Discount Offer</label>
+                      <label className="form-label fw-bold small text-muted">Discount Label (Displayed to users)</label>
                       <input className="form-control py-2" value={restaurantForm.discount} onChange={e => setRestaurantForm(p => ({ ...p, discount: e.target.value }))} placeholder="e.g. 50% OFF up to ₹100" />
+                    </div>
+                    <div className="row mb-3">
+                      <div className="col-4">
+                        <label className="form-label fw-bold small text-muted">Discount %</label>
+                        <input type="number" className="form-control py-2" value={restaurantForm.discountPercentage} onChange={e => setRestaurantForm(p => ({ ...p, discountPercentage: e.target.value }))} placeholder="50" />
+                      </div>
+                      <div className="col-4">
+                        <label className="form-label fw-bold small text-muted">Max Off (₹)</label>
+                        <input type="number" className="form-control py-2" value={restaurantForm.maxDiscount} onChange={e => setRestaurantForm(p => ({ ...p, maxDiscount: e.target.value }))} placeholder="100" />
+                      </div>
+                      <div className="col-4">
+                        <label className="form-label fw-bold small text-muted">Min Order (₹)</label>
+                        <input type="number" className="form-control py-2" value={restaurantForm.minOrderValue} onChange={e => setRestaurantForm(p => ({ ...p, minOrderValue: e.target.value }))} placeholder="200" />
+                      </div>
                     </div>
                     <div className="mb-4">
                       <label className="form-label fw-bold small text-muted d-block">Restaurant Banner (GIF/Image)</label>
                       <div className="d-flex align-items-center gap-3 mb-2">
-                        <input type="file" accept="image/*" className="d-none" id="banner-upload" 
+                        <input type="file" accept="image/*" className="d-none" id="banner-upload"
                           onChange={async (e) => {
                             if (e.target.files?.[0]) {
                               const base64 = await handleFileRead(e.target.files[0]);
@@ -678,17 +914,17 @@ const PartnerDashboard = () => {
                         </label>
                         <small className="text-muted">Max 10MB</small>
                       </div>
-                      
+
                       {restaurantForm.imageUrl && (
                         <div className="mt-2 text-center">
                           <small className="text-muted d-block mb-1">Preview:</small>
                           <img src={restaurantForm.imageUrl} alt="Preview" style={{ width: "100%", height: "100px", objectFit: "cover", borderRadius: "8px", border: "1px solid #ddd" }} />
                         </div>
                       )}
-                      
+
                       <div className="mt-3">
                         <label className="form-label fw-bold small text-muted opacity-50">Or Or Paste Image URL</label>
-                        <input className="form-control form-control-sm" value={restaurantForm.imageUrl.startsWith("data:") ? "" : restaurantForm.imageUrl} 
+                        <input className="form-control form-control-sm" value={restaurantForm.imageUrl.startsWith("data:") ? "" : restaurantForm.imageUrl}
                           onChange={e => setRestaurantForm(p => ({ ...p, imageUrl: e.target.value }))} placeholder="https://example.com/banner.jpg" />
                       </div>
                     </div>
@@ -720,27 +956,27 @@ const PartnerDashboard = () => {
                 <div className="modal-body">
                   <div className="mb-3">
                     <label className="form-label small fw-bold text-muted">Item Name</label>
-                    <input className="form-control" value={editingItem.name} 
+                    <input className="form-control" value={editingItem.name}
                       onChange={e => setEditingItem(p => ({ ...p, name: e.target.value }))} required />
                   </div>
                   <div className="row g-3 mb-3">
                     <div className="col-6">
                       <label className="form-label small fw-bold text-muted">Price (₹)</label>
-                      <input type="number" className="form-control" value={editingItem.price} 
+                      <input type="number" className="form-control" value={editingItem.price}
                         onChange={e => setEditingItem(p => ({ ...p, price: e.target.value }))} required min="1" />
                     </div>
                     <div className="col-6">
                       <label className="form-label small fw-bold text-muted">Stock</label>
-                      <input type="number" className="form-control" value={editingItem.stock} 
+                      <input type="number" className="form-control" value={editingItem.stock}
                         onChange={e => setEditingItem(p => ({ ...p, stock: e.target.value }))} required min="0" />
                     </div>
                   </div>
                   <div className="mb-3">
                     <div className="d-flex justify-content-between align-items-center mb-1">
                       <label className="form-label small fw-bold text-muted mb-0">Description</label>
-                      <button 
-                        type="button" 
-                        className="btn btn-sm btn-outline-primary py-0" 
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-primary py-0"
                         style={{ fontSize: '11px', borderRadius: '20px' }}
                         onClick={() => handleGenerateAI(editingItem, setEditingItem)}
                         disabled={isGeneratingAI}
@@ -748,8 +984,44 @@ const PartnerDashboard = () => {
                         {isGeneratingAI ? '⌛ Generating...' : '✨ AI Generate'}
                       </button>
                     </div>
-                    <textarea className="form-control" rows={3} value={editingItem.description} 
+                    <textarea className="form-control" rows={3} value={editingItem.description}
                       onChange={e => setEditingItem(p => ({ ...p, description: e.target.value }))} required />
+                  </div>
+                  <div className="mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <label className="form-label small fw-bold text-muted mb-0">Cuisine Tags (Select Multiple)</label>
+                      <button 
+                        type="button" 
+                        className="btn btn-link btn-sm text-decoration-none p-0" 
+                        style={{ fontSize: '11px' }}
+                        onClick={() => setEditingItem(p => ({ ...p, cuisines: [] }))}
+                      >
+                        🗑️ Clear All
+                      </button>
+                    </div>
+                    <div className="d-flex flex-wrap gap-2 p-2 bg-light rounded border">
+                      {(restaurant?.cuisines?.length > 0 ? restaurant.cuisines : CUISINE_TAGS).map(tag => {
+                        const isSelected = (editingItem.cuisines || []).includes(tag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-outline-secondary'}`}
+                            style={{ borderRadius: '20px', fontSize: '11px' }}
+                            onClick={() => {
+                              setEditingItem(p => ({
+                                ...p,
+                                cuisines: isSelected 
+                                  ? (p.cuisines || []).filter(t => t !== tag)
+                                  : [...(p.cuisines || []), tag]
+                              }));
+                            }}
+                          >
+                            {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="mb-3">
                     <label className="form-label small fw-bold text-muted d-block">Dish Type</label>
@@ -771,7 +1043,7 @@ const PartnerDashboard = () => {
                   <div className="mb-0">
                     <label className="form-label small fw-bold text-muted d-block">Dish Image</label>
                     <div className="d-flex align-items-center gap-3">
-                      <input type="file" accept="image/*" className="d-none" id="edit-dish-upload" 
+                      <input type="file" accept="image/*" className="d-none" id="edit-dish-upload"
                         onChange={async (e) => {
                           if (e.target.files?.[0]) {
                             const base64 = await handleFileRead(e.target.files[0]);

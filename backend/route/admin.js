@@ -8,7 +8,9 @@ import {
   deleteUser,
   getAllRestaurantsAdmin,
   toggleRestaurantStatus,
-  getAllOrdersAdmin
+  deleteRestaurantAdmin,
+  getAllOrdersAdmin,
+  updateUserPasswordAdmin
 } from "../controllers/adminController.js";
 
 import { protect, restrictTo } from "../controllers/authController.js";
@@ -24,7 +26,11 @@ router.route("/users/:id")
   .patch(updateUser)
   .delete(deleteUser);
 
+router.route("/users/:id/password").patch(updateUserPasswordAdmin);
+
 router.route("/restaurants").get(getAllRestaurantsAdmin);
+router.route("/restaurants/:id")
+  .delete(deleteRestaurantAdmin);
 router.route("/restaurants/:id/status").patch(toggleRestaurantStatus);
 
 router.route("/orders").get(getAllOrdersAdmin);

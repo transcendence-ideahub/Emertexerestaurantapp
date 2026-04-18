@@ -20,7 +20,7 @@ router.post("/send-registration-otp", sendRegistrationOTP);
 router.post("/login", login);
 router.get("/logout", logout);
 router.post("/password/forgot", forgotPassword);
-router.patch("/password/reset/:token", resetPassword);
+router.patch("/password/reset", resetPassword);
 
 // Protected routes
 router.use(protect);

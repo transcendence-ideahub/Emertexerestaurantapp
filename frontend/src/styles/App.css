@@ -12,8 +12,10 @@ body {
 
 /* Primary Colors */
 :root {
-  --primary-color: #e67e22; /* Vibrant Orange */
-  --secondary-color: #2ecc71; /* Light Green */
+  --primary-color: #e67e22;
+  /* Vibrant Orange */
+  --secondary-color: #2ecc71;
+  /* Light Green */
 }
 
 /* Navbar Styling */
@@ -36,8 +38,13 @@ body {
   text-decoration: none;
 }
 
-.logo-order { color: var(--primary-color); }
-.logo-eat { color: var(--secondary-color); }
+.logo-order {
+  color: var(--primary-color);
+}
+
+.logo-eat {
+  color: var(--secondary-color);
+}
 
 /* Search Bar */
 .search-container {

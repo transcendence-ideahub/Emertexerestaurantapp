@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { BASE_URL } from '../utils/api';
 import '../styles/Auth.css';
+import AddressAutocomplete from '../components/AddressAutocomplete';
 
 const Register = () => {
   const [step, setStep] = useState(1); // 1 = form, 2 = otp
@@ -17,13 +18,35 @@ const Register = () => {
     otp: '',
     restaurantName: '',
     restaurantAddress: '',
+    address: '',
+    location: { lat: null, lng: null },
+    vehicleType: 'Bike'
   });
+  
+  // ... handleChange and other logic
+  
+  const handleAddressSelect = (data) => {
+    if (formData.role === 'restaurant-owner') {
+      setFormData(prev => ({ 
+        ...prev, 
+        restaurantAddress: data.address, 
+        location: { lat: data.lat, lng: data.lng } 
+      }));
+    } else {
+      setFormData(prev => ({ 
+        ...prev, 
+        address: data.address, 
+        location: { lat: data.lat, lng: data.lng } 
+      }));
+    }
+  };
   const [avatarPreview, setAvatarPreview] = useState('/images/default_avatar.jpg');
   const [loading, setLoading] = useState(false);
 
   const location = useLocation();
   const redirect = location.search ? location.search.split('=')[1] : '/';
   const isOwner = formData.role === 'restaurant-owner';
+  const isDelivery = formData.role === 'delivery';
 
   const handleChange = (e) => {
     if (e.target.name === 'avatar') {
@@ -46,6 +69,9 @@ const Register = () => {
     if (formData.phoneNumber.length !== 10) return toast.error("Phone number must be exactly 10 digits");
     if (isOwner && (!formData.restaurantName || !formData.restaurantAddress)) {
       return toast.error("Please fill in your Restaurant Name and Address");
+    }
+    if (isDelivery && !formData.vehicleType) {
+      return toast.error("Please select your vehicle type");
     }
 
     setLoading(true);
@@ -95,11 +121,17 @@ const Register = () => {
     }
   };
 
+  const accentColor = isOwner ? '#e67e22' : isDelivery ? '#3498db' : '#2ecc71';
+
   return (
     <div className="auth-container">
       <div className="auth-card" style={{ minWidth: '480px', maxWidth: '540px' }}>
-        <h2 className="auth-title mb-2 fw-800" style={{ color: isOwner ? '#e67e22' : '#2ecc71', fontWeight: '800' }}>
-          {step === 1 ? (isOwner ? '🍽️ Partner with OrderEat' : 'Join OrderEat') : '📧 Verify Your Email'}
+        <h2 className="auth-title mb-2 fw-800" style={{ color: accentColor, fontWeight: '800' }}>
+          {step === 1
+            ? isOwner ? '🍽️ Partner with OrderEat'
+            : isDelivery ? '🚴 Join as Delivery Partner'
+            : 'Join OrderEat'
+          : '📧 Verify Your Email'}
         </h2>
 
         {step === 1 && (
@@ -116,12 +148,17 @@ const Register = () => {
                 onClick={() => setFormData(prev => ({ ...prev, role: 'restaurant-owner' }))}>
                 🏪 Restaurant Owner
               </button>
+              <button type="button"
+                className={`role-toggle-btn ${isDelivery ? 'active-blue' : ''}`}
+                onClick={() => setFormData(prev => ({ ...prev, role: 'delivery' }))}>
+                🚴 Delivery Partner
+              </button>
             </div>
 
             <form onSubmit={requestOTP} encType="multipart/form-data">
               {/* Avatar Preview */}
               <div className="d-flex align-items-center mb-4 p-3 bg-light rounded border shadow-sm">
-                <figure style={{ width: '55px', height: '55px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${isOwner ? '#e67e22' : '#2ecc71'}`, marginRight: '15px', flexShrink: 0 }}>
+                <figure style={{ width: '55px', height: '55px', borderRadius: '50%', overflow: 'hidden', border: `3px solid ${accentColor}`, marginRight: '15px', flexShrink: 0 }}>
                   <img src={avatarPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </figure>
                 <div className="flex-grow-1">
@@ -157,6 +194,44 @@ const Register = () => {
                 </div>
               </div>
 
+              <div className="mb-3">
+                <label className="auth-label text-muted fw-bold small">Delivery Address</label>
+                <AddressAutocomplete 
+                  placeholder="Type your area, street or building..." 
+                  onAddressSelect={handleAddressSelect}
+                  initialValue={formData.address}
+                />
+              </div>
+
+              {/* Delivery Partner Extra Fields */}
+              {isDelivery && (
+                <div className="p-3 mb-3 rounded border" style={{ borderColor: '#3498db', backgroundColor: '#f0f8ff' }}>
+                  <p className="fw-bold small mb-2" style={{ color: '#3498db' }}>🚴 Delivery Partner Details</p>
+                  <div className="mb-2">
+                    <label className="auth-label text-muted fw-bold small">Vehicle Type</label>
+                    <div className="d-flex gap-3 p-2 bg-white rounded border">
+                      {['Bike', 'Scooter', 'Bicycle', 'On-Foot'].map(v => (
+                        <div key={v} className="form-check">
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name="vehicleType"
+                            id={`vehicle-${v}`}
+                            value={v}
+                            checked={formData.vehicleType === v}
+                            onChange={handleChange}
+                          />
+                          <label className="form-check-label small fw-bold" htmlFor={`vehicle-${v}`}>{v}</label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="mt-2 p-2 rounded" style={{ background: '#e8f4fd', fontSize: '12px', color: '#2980b9' }}>
+                    ℹ️ After registration, you can toggle your availability from your dashboard. Orders will auto-assign to you when you are online.
+                  </div>
+                </div>
+              )}
+
               {/* Restaurant Owner Extra Fields */}
               {isOwner && (
                 <div className="p-3 mb-3 rounded border" style={{ borderColor: '#e67e22', backgroundColor: '#fff8f4' }}>
@@ -167,21 +242,25 @@ const Register = () => {
                   </div>
                   <div>
                     <label className="auth-label text-muted fw-bold small">Restaurant Address</label>
-                    <input type="text" className="form-control auth-input py-2" name="restaurantAddress" onChange={handleChange} required={isOwner} />
+                    <AddressAutocomplete
+                      placeholder="Search for your restaurant location..."
+                      onAddressSelect={handleAddressSelect}
+                      initialValue={formData.restaurantAddress}
+                    />
                   </div>
                 </div>
               )}
 
               <button type="submit" className="btn w-100 text-white fw-bold py-2 shadow-sm mt-1"
                 disabled={loading}
-                style={{ backgroundColor: isOwner ? '#e67e22' : '#2ecc71', border: 'none', borderRadius: '8px' }}>
+                style={{ backgroundColor: accentColor, border: 'none', borderRadius: '8px' }}>
                 {loading ? 'Sending Code...' : 'CONTINUE →'}
               </button>
             </form>
 
             <div className="text-center mt-3">
               <span className="text-muted fw-bold small">Already have an account? </span>
-              <Link to={`/login?redirect=${redirect}`} className="text-decoration-none fw-bold small" style={{ color: isOwner ? '#e67e22' : '#2ecc71' }}>
+              <Link to={`/login?redirect=${redirect}`} className="text-decoration-none fw-bold small" style={{ color: accentColor }}>
                 Login
               </Link>
             </div>

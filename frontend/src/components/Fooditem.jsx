@@ -4,10 +4,13 @@ import toast from 'react-hot-toast';
 import { addItemToCart } from '../actions/cartActions';
 import '../styles/Fooditem.css';
 
-const Fooditem = ({ fooditem }) => {
+const Fooditem = ({ fooditem, isClosed }) => {
   const dispatch = useDispatch();
 
   const handleAddToCart = () => {
+    if (isClosed) {
+      return toast.error("This restaurant is currently closed.");
+    }
     dispatch(addItemToCart(fooditem._id, 1));
     toast.success(`${fooditem.name} added to cart!`, {
       style: {
@@ -21,7 +24,7 @@ const Fooditem = ({ fooditem }) => {
   const [showReviews, setShowReviews] = React.useState(false);
 
   return (
-    <div className={`menu-item-card ${fooditem.stock === 0 ? 'is-out-of-stock' : ''}`}>
+    <div className={`menu-item-card ${fooditem.stock === 0 || isClosed ? 'is-out-of-stock' : ''}`}>
       <div className="item-details">
         <div className="item-meta">
           <span className={`veg-nonveg-icon ${fooditem.dishType?.toLowerCase() || (fooditem.isVeg ? 'veg' : 'non-veg')}`}>
@@ -74,10 +77,10 @@ const Fooditem = ({ fooditem }) => {
           <button 
             className="swiggy-add-btn" 
             onClick={handleAddToCart}
-            disabled={fooditem.stock === 0}
+            disabled={fooditem.stock === 0 || isClosed}
           >
-            {fooditem.stock === 0 ? 'SOLD OUT' : 'ADD'}
-            {fooditem.stock > 0 && <span className="plus-icon">+</span>}
+            {isClosed ? 'CLOSED' : fooditem.stock === 0 ? 'SOLD OUT' : 'ADD'}
+            {!isClosed && fooditem.stock > 0 && <span className="plus-icon">+</span>}
           </button>
           {fooditem.stock < 5 && fooditem.stock > 0 && (
             <div className="stock-warning">Only {fooditem.stock} left</div>

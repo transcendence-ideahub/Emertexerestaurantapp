@@ -20,6 +20,10 @@ const restaurantSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    hasVeg: {
+      type: Boolean,
+      default: false,
+    },
     address: {
       type: String,
       required: [true, "Please enter restaurant address"],
@@ -71,6 +75,18 @@ const restaurantSchema = new mongoose.Schema(
     discount: {
       type: String,
       default: "",
+    },
+    discountPercentage: {
+      type: Number,
+      default: 0,
+    },
+    maxDiscount: {
+      type: Number,
+      default: 0,
+    },
+    minOrderValue: {
+      type: Number,
+      default: 0,
     },
     owner: {
       type: mongoose.Schema.ObjectId,

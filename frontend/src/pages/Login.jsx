@@ -26,6 +26,10 @@ const Login = () => {
                     // Already logged in — send to correct destination
                     if (data.user.role === 'restaurant-owner') {
                         navigate('/partner/dashboard');
+                    } else if (data.user.role === 'admin') {
+                        navigate('/admin/dashboard');
+                    } else if (data.user.role === 'delivery') {
+                        navigate('/delivery/dashboard');
                     } else {
                         navigate(redirect);
                     }
@@ -68,6 +72,8 @@ const Login = () => {
                     ? '/partner/dashboard'
                     : user?.role === 'admin'
                     ? '/admin/dashboard'
+                    : user?.role === 'delivery'
+                    ? '/delivery/dashboard'
                     : redirect;
 
                 setTimeout(() => {
@@ -96,21 +102,14 @@ const Login = () => {
                         className={`role-toggle-btn ${role === 'user' ? 'active-orange' : ''}`}
                         onClick={() => setRole('user')}
                     >
-                        Customer
-                    </button>
-                    <button
-                        type="button"
-                        className={`role-toggle-btn ${role === 'restaurant-owner' ? 'active-orange' : ''}`}
-                        onClick={() => setRole('restaurant-owner')}
-                    >
-                        Owner
+                        🛵 Customer
                     </button>
                     <button
                         type="button"
                         className={`role-toggle-btn ${role === 'admin' ? 'active-orange' : ''}`}
                         onClick={() => setRole('admin')}
                     >
-                        Admin
+                        🛡️ Admin
                     </button>
                 </div>
 
@@ -156,6 +155,16 @@ const Login = () => {
                     <span className="text-muted">Don't have an account? </span>
                     <Link to={`/register?redirect=${redirect}`} className="auth-link" style={{ color: '#2ecc71' }}>
                         Sign Up
+                    </Link>
+                </div>
+                <div className="text-center mt-3 d-flex flex-column gap-2">
+                    <Link to="/delivery/login"
+                      style={{ color: '#f39c12', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '600' }}>
+                        🛵 Delivery Partner Portal →
+                    </Link>
+                    <Link to="/partner/login"
+                      style={{ color: '#e67e22', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '600' }}>
+                        🏪 Restaurant Partner Portal →
                     </Link>
                 </div>
             </div>

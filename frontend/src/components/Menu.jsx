@@ -87,6 +87,11 @@ const Menu = () => {
             )}
           </div>
           <div className="header-divider"></div>
+          {restaurant.isActive === false && (
+            <div className="alert alert-danger border-0 rounded-0 text-center py-2 mb-0 fw-bold" style={{ backgroundColor: '#e74c3c', color: 'white' }}>
+              ⚠️ THIS RESTAURANT IS CURRENTLY CLOSED AND NOT ACCEPTING ORDERS
+            </div>
+          )}
         </div>
       )}
 
@@ -132,7 +137,7 @@ const Menu = () => {
                 </h3>
                 <div className="food-list">
                   {filteredItems.map((item) => (
-                    <Fooditem key={item._id} fooditem={item} />
+                    <Fooditem key={item._id} fooditem={item} isClosed={restaurant?.isActive === false} />
                   ))}
                 </div>
               </div>

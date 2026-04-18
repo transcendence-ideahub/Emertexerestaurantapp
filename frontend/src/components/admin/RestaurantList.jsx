@@ -39,6 +39,24 @@ const RestaurantList = () => {
         }
     };
 
+    const deleteRestaurant = async (id) => {
+        if (!window.confirm("CRITICAL WARNING: This will PERMANENTLY DELETE this restaurant and ALL its food items and order history. This action cannot be undone. Proceed?")) return;
+        
+        try {
+            const res = await fetch(`${BASE_URL}/admin/restaurants/${id}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success("Restaurant and all related data deleted permanently");
+                fetchRestaurants();
+            }
+        } catch (err) {
+            toast.error("Failed to delete restaurant");
+        }
+    };
+
     if (loading) return <div className="loader"></div>;
 
     return (
@@ -90,12 +108,22 @@ const RestaurantList = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <button 
-                                                className={`btn btn-sm ${res.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`}
-                                                onClick={() => toggleStatus(res._id)}
-                                            >
-                                                {res.isActive ? 'Deactivate' : 'Verify & Activate'}
-                                            </button>
+                                            <div className="d-flex gap-2">
+                                                <button 
+                                                    className={`btn btn-sm ${res.isActive ? 'btn-outline-warning' : 'btn-outline-success'}`}
+                                                    onClick={() => toggleStatus(res._id)}
+                                                    style={{ width: '130px' }}
+                                                >
+                                                    {res.isActive ? 'Deactivate' : 'Verify & Activate'}
+                                                </button>
+                                                <button 
+                                                    className="btn btn-danger btn-sm"
+                                                    onClick={() => deleteRestaurant(res._id)}
+                                                    title="Permanent Delete"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

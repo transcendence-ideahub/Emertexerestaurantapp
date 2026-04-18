@@ -44,7 +44,7 @@ export const createFoodItem = catchAsync(async (req, res, next) => {
 });
 
 export const getFoodItem = catchAsync(async (req, res, next) => {
-  const foodItem = await Fooditem.findById(req.params.foodId);
+  const foodItem = await Fooditem.findById(req.params.foodId).populate("restaurant");
 
   if (!foodItem) return next(new ErrorHandler("No foodItem found with that ID", 404));
 
@@ -165,20 +165,21 @@ export const getDiscoveryItems = catchAsync(async (req, res, next) => {
     filter.name = { $regex: search, $options: "i" };
   }
 
-  // Fetch items with populated restaurant
-  let foodItems = await Fooditem.find(filter).populate("restaurant");
+  // Fetch items with populated restaurant explicitly including isActive
+  let foodItems = await Fooditem.find(filter).populate({
+    path: "restaurant",
+    select: "name isActive location cuisines images owner"
+  });
 
-  // Filter: Ensure only items from "real" restaurants (with an owner) are returned
-  foodItems = foodItems.filter(item => 
-    item.restaurant && 
-    item.restaurant.owner && 
-    item.restaurant.isActive !== false
+  foodItems = foodItems.filter(item =>
+    item.restaurant &&
+    item.restaurant.owner
   );
 
-  // Filter by cuisine if requested (restaurant field)
+  // Filter by cuisine if requested (item cuisines field only)
   if (cuisine && cuisine !== 'All') {
-    foodItems = foodItems.filter(item => 
-      item.restaurant && item.restaurant.cuisines && item.restaurant.cuisines.includes(cuisine)
+    foodItems = foodItems.filter(item =>
+      item.cuisines && item.cuisines.includes(cuisine)
     );
   }
 
@@ -188,9 +189,41 @@ export const getDiscoveryItems = catchAsync(async (req, res, next) => {
     [foodItems[i], foodItems[j]] = [foodItems[j], foodItems[i]];
   }
 
+  const { lat, lng } = req.query;
+    foodItems = foodItems.map(item => {
+      const itemObj = item.toObject();
+      const res = item.restaurant;
+
+      if (res) {
+        // Ensure the restaurant object is a plain object with isActive explicitly set
+        itemObj.restaurant = res.toObject ? res.toObject() : res;
+        itemObj.restaurant.isActive = res.isActive !== false;
+
+        if (lat && lng && res.location && res.location.coordinates) {
+          const userLat = parseFloat(lat);
+          const userLng = parseFloat(lng);
+          const [resLng, resLat] = res.location.coordinates;
+          const R = 6371;
+          const dLat = (resLat - userLat) * (Math.PI / 180);
+          const dLng = (resLng - userLng) * (Math.PI / 180);
+          const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(userLat * (Math.PI / 180)) * Math.cos(resLat * (Math.PI / 180)) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          const distance = R * c;
+
+          itemObj.distance = distance;
+          itemObj.deliveryTime = Math.round(10 + (distance * 5));
+        } else {
+          itemObj.deliveryTime = 35;
+        }
+      }
+      return itemObj;
+    });
+
   res.status(200).json({
     success: true,
     results: foodItems.length,
-    foodItems: foodItems.slice(0, 40), // Increased to 40 items to better fill 3 rows
+    foodItems: foodItems.slice(0, 40),
   });
 });

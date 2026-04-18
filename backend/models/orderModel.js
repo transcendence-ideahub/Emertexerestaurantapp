@@ -30,9 +30,17 @@ const orderSchema = new mongoose.Schema(
       ref: "Restaurant",
       required: true,
     },
+    deliveryPerson: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+    },
+    deliveryOtp: {
+      type: String,
+    },
     itemsPrice: { type: Number, required: true, default: 0 },
     taxPrice: { type: Number, required: true, default: 0 },
     deliveryPrice: { type: Number, required: true, default: 0 },
+    discountPrice: { type: Number, required: true, default: 0 },
     totalPrice: { type: Number, required: true, default: 0 },
     paymentInfo: {
       method: {
@@ -52,6 +60,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["Processing", "Preparing", "Out for Delivery", "Delivered", "Cancelled"],
     },
     deliveredAt: Date,
+    deliveryStartedAt: Date,
   },
   { timestamps: true }
 );

@@ -103,9 +103,21 @@
     box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
 }
 
-@media (max-width: 450px) {
+/* Delivery Active Color (Blue) */
+.role-toggle-btn.active-blue {
+    background-color: #3498db;
+    color: white;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+@media (max-width: 520px) {
+    .role-toggle-group {
+        flex-wrap: wrap;
+        border-radius: 16px;
+    }
     .role-toggle-btn {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
+        flex: 1 1 45%;
     }
 }
 

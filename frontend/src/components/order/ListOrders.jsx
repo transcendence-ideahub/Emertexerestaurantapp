@@ -52,8 +52,8 @@ const ListOrders = () => {
 
     fetchOrders();
 
-    // Enable real-time status polling
-    const interval = setInterval(fetchOrders, 5000);
+    // High-frequency polling for live delivery tracking
+    const interval = setInterval(fetchOrders, 3000);
     return () => clearInterval(interval);
   }, []);
 

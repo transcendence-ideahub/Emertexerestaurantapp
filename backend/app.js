@@ -18,6 +18,7 @@ import authRoutes from "./route/auth.js";
 import orderRoutes from "./route/order.js";
 import aiRoutes from "./route/ai.js";
 import adminRoutes from "./route/admin.js";
+import deliveryRoutes from "./route/delivery.js";
 
 const app = express();
 
@@ -32,6 +33,10 @@ process.on("uncaughtException", (err) => {
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -66,6 +71,7 @@ app.use("/api/v1/users", authRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/ai", aiRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/delivery", deliveryRoutes);
 
 // Error Middleware
 app.use(errorMiddleware);

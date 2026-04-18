@@ -138,3 +138,49 @@ export const getAllOrdersAdmin = catchAsyncErrors(async (req, res, next) => {
     orders
   });
 });
+
+// @desc    Delete restaurant and all related data (Admin)
+// @route   DELETE /api/v1/admin/restaurants/:id
+// @access  Private/Admin
+export const deleteRestaurantAdmin = catchAsyncErrors(async (req, res, next) => {
+  const restaurant = await Restaurant.findById(req.params.id);
+
+  if (!restaurant) {
+    return next(new ErrorHandler("Restaurant not found", 404));
+  }
+
+  // 1. Delete all food items belonging to this restaurant
+  await FoodItem.deleteMany({ restaurant: restaurant._id });
+
+  // 2. Delete all orders associated with this restaurant
+  await Order.deleteMany({ restaurant: restaurant._id });
+
+  // 3. Delete the restaurant itself
+  await restaurant.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Restaurant and all associated food items and orders have been permanently deleted."
+  });
+});
+
+// @desc    Update user password (Admin)
+// @route   PATCH /api/v1/admin/users/:id/password
+// @access  Private/Admin
+export const updateUserPasswordAdmin = catchAsyncErrors(async (req, res, next) => {
+  const { password } = req.body;
+  if (!password) return next(new ErrorHandler("Please provide a new password", 400));
+
+  const user = await User.findById(req.params.id).select("+password");
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  user.password = password;
+  user.passwordConfirm = password; 
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "User password updated successfully"
+  });
+});

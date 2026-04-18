@@ -16,7 +16,12 @@ export const addItemToCart = (id, quantity) => async (dispatch) => {
         price: item.price,
         image: item.images?.[0]?.url || "https://via.placeholder.com/150",
         stock: item.stock,
-        restaurant: item.restaurant, // Store the restaurant ID
+        restaurant: item.restaurant?._id,
+        restaurantData: {
+          discountPercentage: item.restaurant?.discountPercentage || 0,
+          maxDiscount: item.restaurant?.maxDiscount || 0,
+          minOrderValue: item.restaurant?.minOrderValue || 0,
+        },
         quantity
       };
 
