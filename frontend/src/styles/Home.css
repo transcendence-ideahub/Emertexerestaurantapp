@@ -102,6 +102,7 @@
 .text-accent {
   background: linear-gradient(to right, #fbbf24, #f59e0b);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-style: italic;
 }
