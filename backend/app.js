@@ -42,23 +42,30 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
   process.env.FRONTEND_URL,
-  "https://emertexerestaurantapp.vercel.app",
-  "https://emertexerestaurantapp-pre-final.vercel.app"
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
+      // 1. Allow requests with no origin (like mobile apps, curl, or server-to-server)
       if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+
+      // 2. Check if the origin matches our allowed list or is a known deployment platform
+      const isAllowed = 
+        allowedOrigins.includes(origin) || 
+        origin.includes("vercel.app") || 
+        origin.includes("netlify.app");
+
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.log(`CORS blocked for origin: ${origin}`);
+        callback(null, false); // Return false instead of an Error for cleaner rejection
       }
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
   })
 );
 
