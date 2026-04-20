@@ -22,29 +22,6 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      // === SESSION TIMEOUT CHECK ===
-      const lastActive = localStorage.getItem('lastActiveTime');
-      const now = Date.now();
-      const TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
-      if (lastActive && (now - parseInt(lastActive)) > TIMEOUT) {
-        console.log("Session timed out. Logging out...");
-        try {
-          await fetch(`${BASE_URL}/users/logout`, { 
-            method: 'GET', 
-            credentials: 'include' 
-          });
-        } catch (err) {
-          console.error("Auto-logout fetch failed", err);
-        }
-        localStorage.removeItem('lastActiveTime');
-        setIsAuthenticated(false);
-        setUser(null);
-        setLoading(false);
-        return; // Don't proceed to fetch profile
-      }
-      // ==============================
-
       try {
         const response = await fetch(`${BASE_URL}/users/me`, {
           method: 'GET',

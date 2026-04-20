@@ -28,25 +28,6 @@ import PartnerLogin from './pages/PartnerLogin';
 import { BASE_URL } from './utils/api';
 
 function App() {
-  useEffect(() => {
-    // Periodic update every 30 seconds to track activity while tab is open
-    const interval = setInterval(() => {
-      localStorage.setItem('lastActiveTime', Date.now().toString());
-    }, 30000);
-
-    // Update on tab close/unload
-    const handleUnload = () => {
-      localStorage.setItem('lastActiveTime', Date.now().toString());
-    };
-
-    window.addEventListener('beforeunload', handleUnload);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeunload', handleUnload);
-    };
-  }, []);
-
   return (
     <Router>
       <Toaster position="top-center" />
