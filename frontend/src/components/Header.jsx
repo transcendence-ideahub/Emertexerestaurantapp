@@ -124,9 +124,16 @@ const Header = () => {
   const handleLogout = async () => {
     try {
       await fetch(`${BASE_URL}/users/logout`, { method: 'GET', credentials: 'include' });
-    } catch {}
+    } catch (err) {
+      console.error("Logout fetch failed", err);
+    }
+    
+    // Clear local storage and state
+    localStorage.removeItem('lastActiveTime');
     setIsAuthenticated(false);
     setUser(null);
+    
+    // Redirect to home and force a hard reload to clear any cached data
     window.location.href = '/';
   };
 

@@ -173,6 +173,7 @@ export const restrictTo = (...roles) => {
 export const getUserProfile = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
+  res.setHeader("Cache-Control", "no-store");
   res.status(200).json({
     success: true,
     user,
@@ -300,9 +301,13 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 // Logout
 export const logout = catchAsyncErrors(async (req, res, next) => {
+  const isLocal = process.env.FRONTEND_URL && process.env.FRONTEND_URL.includes('localhost');
+  
   res.cookie("jwt", null, {
     expires: new Date(Date.now()),
     httpOnly: true,
+    sameSite: isLocal ? 'lax' : 'none',
+    secure: isLocal ? false : true
   });
 
   res.status(200).json({
