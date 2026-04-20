@@ -2,7 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import cors from "cors";
 
 // Initialize Environment Variables
 dotenv.config();
@@ -37,37 +36,29 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
-// Dynamic CORS configuration
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  process.env.FRONTEND_URL,
-];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const frontendUrl = process.env.FRONTEND_URL;
+  const allowedPatterns = [".vercel.app", ".netlify.app", "localhost:3000", "localhost:3001"];
+  
+  const isAllowed = origin && (
+    allowedPatterns.some(pattern => origin.includes(pattern)) || 
+    (frontendUrl && origin === frontendUrl)
+  );
+  
+  if (isAllowed || !origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
+  }
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // 1. Allow requests with no origin (like mobile apps, curl, or server-to-server)
-      if (!origin) return callback(null, true);
-
-      // 2. Check if the origin matches our allowed list or is a known deployment platform
-      const isAllowed = 
-        allowedOrigins.includes(origin) || 
-        origin.includes("vercel.app") || 
-        origin.includes("netlify.app");
-
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        console.log(`CORS blocked for origin: ${origin}`);
-        callback(null, false); // Return false instead of an Error for cleaner rejection
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"]
-  })
-);
+  // Handle preflight
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // --- ANTI-SLEEP PING LOGIC ---
 // Endpoint for self-pinging
