@@ -17,6 +17,12 @@
     max-width: 450px;
 }
 
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem;
+    }
+}
+
 .auth-title {
     text-align: center;
     font-weight: 800;
@@ -114,10 +120,12 @@
     .role-toggle-group {
         flex-wrap: wrap;
         border-radius: 16px;
+        gap: 4px;
     }
     .role-toggle-btn {
         font-size: 0.75rem;
         flex: 1 1 45%;
+        padding: 0.6rem 0.2rem;
     }
 }
 

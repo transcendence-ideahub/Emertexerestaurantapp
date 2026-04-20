@@ -51,7 +51,7 @@ app.get("/ping", (req, res) => {
 });
 
 // Self-ping interval (every 14 minutes to prevent Render sleep)
-const PING_INTERVAL = 14 * 60 * 1000; 
+const PING_INTERVAL = 14 * 60 * 1000;
 setInterval(async () => {
   try {
     const response = await fetch(`${process.env.RENDER_EXTERNAL_URL}/ping`);
@@ -94,7 +94,7 @@ const startServer = async () => {
         process.exit(1);
       });
     });
-    
+
   } catch (err) {
     console.error(`Failed to connect to MongoDB: ${err.message}`);
     process.exit(1);

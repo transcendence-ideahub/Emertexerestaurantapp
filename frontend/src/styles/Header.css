@@ -22,6 +22,21 @@
   gap: 40px;
 }
 
+@media (max-width: 1024px) {
+  .header-inner {
+    padding: 0 20px;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 0 16px;
+    gap: 15px;
+    height: 64px;
+  }
+}
+
 /* === LOGO === */
 .header-logo {
   display: flex;
@@ -62,6 +77,12 @@
   flex: 1;
   max-width: 520px;
   position: relative;
+}
+
+@media (max-width: 580px) {
+  .header-search-container {
+    display: none; /* Hide main search on very small screens, or we can move it below */
+  }
 }
 
 .header-search {
@@ -322,6 +343,12 @@
   margin-left: auto;
 }
 
+@media (max-width: 768px) {
+  .header-actions {
+    gap: 8px;
+  }
+}
+
 /* === CART BUTTON === */
 .header-cart-btn {
   position: relative;
@@ -403,6 +430,13 @@
   background: white;
 }
 
+@media (max-width: 480px) {
+  .btn-login {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
 .btn-login:hover {
   background: #fafafa;
   border-color: #f59e0b;
@@ -420,6 +454,13 @@
   text-decoration: none;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+}
+
+@media (max-width: 480px) {
+  .btn-signup {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
 }
 
 .btn-signup:hover {

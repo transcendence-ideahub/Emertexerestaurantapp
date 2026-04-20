@@ -173,6 +173,15 @@
     width: 100px;
     height: 110px;
   }
+  .item-name {
+    font-size: 18px;
+  }
+  .item-details {
+    padding-right: 10px;
+  }
+  .menu-item-card {
+    padding: 15px 0;
+  }
 }
 
 .menu-item-card.is-out-of-stock {

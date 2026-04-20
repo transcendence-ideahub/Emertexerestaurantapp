@@ -31,6 +31,12 @@
   padding: 0 32px;
 }
 
+@media (max-width: 768px) {
+  .location-bar-container .container {
+    padding: 0 16px;
+  }
+}
+
 .text-orange {
   color: #f59e0b !important;
   font-weight: 700;
@@ -91,7 +97,7 @@
 }
 
 .hero-title {
-  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  font-size: clamp(1.8rem, 8vw, 3.8rem);
   font-weight: 800;
   color: white;
   margin-bottom: 16px;
@@ -162,6 +168,13 @@
   overflow-x: auto;
   padding: 4px 32px;
   scrollbar-width: none;
+}
+
+@media (max-width: 768px) {
+  .cuisine-scroll {
+    padding: 4px 16px;
+    gap: 8px;
+  }
 }
 
 .cuisine-scroll::-webkit-scrollbar {
@@ -318,6 +331,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   gap: 24px;
+}
+
+@media (max-width: 480px) {
+  .restaurant-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 /* === RESTAURANT CARD === */
@@ -598,6 +618,15 @@
   .filter-bar {
     padding: 10px 16px;
   }
+  
+  .hero-section {
+    padding: 40px 16px 44px;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+    margin-bottom: 24px;
+  }
 }
 
 /* === DISCOVERY SECTION (EXPLORE DISHES) === */
@@ -614,7 +643,7 @@
 }
 
 .section-title {
-  font-size: 38px;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
   font-weight: 800;
   color: #1e293b;
   margin-bottom: 12px;

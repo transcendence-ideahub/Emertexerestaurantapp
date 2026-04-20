@@ -48,6 +48,16 @@
     gap: 24px;
     padding-top: 15px;
     border-top: 1px dashed #d3d3d3;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+    .res-metrics {
+        gap: 12px;
+    }
+    .metric-value {
+        font-size: 13px;
+    }
 }
 
 .metric {
@@ -173,6 +183,13 @@
         height: 180px;
         margin-left: 0;
         margin-bottom: 20px;
+    }
+    .menu-page {
+        padding: 10px 10px 100px;
+        width: 100%;
+    }
+    .res-name {
+        font-size: 20px;
     }
 }
 .menu-filter-pill {
